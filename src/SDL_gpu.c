@@ -1115,7 +1115,11 @@ static SDL_Surface* gpu_copy_raw_surface_data(unsigned char* data, int width, in
 
 SDL_Surface* GPU_LoadSurface_RW(SDL_RWops* rwops, GPU_bool free_rwops)
 {
-    int width, height, channels;
+    // if stb_image reports 2 channels, SDL will read that incorrectly.
+    // instead, always request 4 channels and assume an alpha channel is present.
+    int channels = 4;
+
+    int width, height;
     unsigned char* data;
     SDL_Surface* result;
     
@@ -1138,8 +1142,8 @@ SDL_Surface* GPU_LoadSurface_RW(SDL_RWops* rwops, GPU_bool free_rwops)
     SDL_RWread(rwops, c_data, 1, data_bytes);
     
     // Load image
-    data = stbi_load_from_memory(c_data, data_bytes, &width, &height, &channels, 0);
-    
+    data = stbi_load_from_memory(c_data, data_bytes, &width, &height, NULL, channels);
+
     // Clean up temp data
     SDL_free(c_data);
     if(free_rwops)

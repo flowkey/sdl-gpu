@@ -367,16 +367,19 @@ static_inline void upload_texture(const void* pixels, GPU_Rect update_rect, Uint
 
 static_inline void upload_new_texture(void* pixels, GPU_Rect update_rect, Uint32 format, int alignment, int row_length, int bytes_per_pixel)
 {
+    // macOS (for example) breaks on GPU_FORMAT_BGRA here; it expects RGBA for the internal format instead.
+    Uint32 internalFormat = format == GL_BGRA ? GL_RGBA : format;
+
     #if defined(SDL_GPU_USE_OPENGL) || SDL_GPU_GLES_MAJOR_VERSION > 2
 	(void)bytes_per_pixel;
     glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
-    glTexImage2D(GL_TEXTURE_2D, 0, format, (GLsizei)update_rect.w, (GLsizei)update_rect.h, 0,
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, (GLsizei)update_rect.w, (GLsizei)update_rect.h, 0,
                     format, GL_UNSIGNED_BYTE, pixels);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
     #else
-    glTexImage2D(GL_TEXTURE_2D, 0, format, (GLsizei)update_rect.w, (GLsizei)update_rect.h, 0,
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, (GLsizei)update_rect.w, (GLsizei)update_rect.h, 0,
                  format, GL_UNSIGNED_BYTE, NULL);
     upload_texture(pixels, update_rect, format, alignment, row_length, row_length*bytes_per_pixel, bytes_per_pixel);
     #endif

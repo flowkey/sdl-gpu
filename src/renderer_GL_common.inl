@@ -367,8 +367,12 @@ static_inline void upload_texture(const void* pixels, GPU_Rect update_rect, Uint
 
 static_inline void upload_new_texture(void* pixels, GPU_Rect update_rect, Uint32 format, int alignment, int row_length, int bytes_per_pixel)
 {
+    #ifdef GL_BGRA
     // macOS (for example) breaks on GPU_FORMAT_BGRA here; it expects RGBA for the internal format instead.
     Uint32 internalFormat = format == GL_BGRA ? GL_RGBA : format;
+    #else
+    Uint32 internalFormat = format;
+    #endif
 
     #if defined(SDL_GPU_USE_OPENGL) || SDL_GPU_GLES_MAJOR_VERSION > 2
 	(void)bytes_per_pixel;
